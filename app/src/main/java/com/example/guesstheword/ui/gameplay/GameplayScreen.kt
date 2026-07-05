@@ -84,7 +84,7 @@ fun GameplayScreen(
 ) {
     val context = LocalContext.current
     val prefs = remember { PreferencesManager(context) }
-    val level = prefs.getCurrentLevel()
+    val level = remember { prefs.getCurrentLevel() }
     val puzzle = remember(level) { WordRepository.getPuzzleForLevel(context, level) }
     val scope = rememberCoroutineScope()
 
