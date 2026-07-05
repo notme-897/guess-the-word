@@ -63,6 +63,9 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.activity.compose.BackHandler
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import com.example.guesstheword.data.PreferencesManager
 import com.example.guesstheword.data.WordRepository
 import com.example.guesstheword.theme.CoinBadge
@@ -114,6 +117,7 @@ fun GameplayScreen(
     var isCorrect    by rememberSaveable(level)        { mutableStateOf(false) }
     var isWrong      by rememberSaveable(level)        { mutableStateOf(false) }
     var showGetReady by rememberSaveable(level)        { mutableStateOf(true) }
+    var showExitConfirmDialog by rememberSaveable(level) { mutableStateOf(false) }
 
     // Shake animation
     val shakeAnim = remember { Animatable(0f) }
@@ -298,7 +302,13 @@ fun GameplayScreen(
                 ) {
                     GameIconButton(
                         icon = "←",
-                        onClick = onBack
+                        onClick = {
+                            if (answerSlots.any { it != null } && !isCorrect) {
+                                showExitConfirmDialog = true
+                            } else {
+                                onBack()
+                            }
+                        }
                     )
 
                     Text(
@@ -475,6 +485,50 @@ fun GameplayScreen(
                     )
                 }
             }
+        }
+
+        // ── Exit Confirmation Dialog ──────────────────────────────────────────
+        val inProgress = answerSlots.any { it != null } && !isCorrect
+        BackHandler(enabled = inProgress) {
+            showExitConfirmDialog = true
+        }
+
+        if (showExitConfirmDialog) {
+            AlertDialog(
+                onDismissRequest = { showExitConfirmDialog = false },
+                containerColor = MaterialTheme.colorScheme.surface,
+                shape = RoundedCornerShape(28.dp),
+                title = {
+                    Text(
+                        "Exit Game?",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.ExtraBold,
+                            color = textPrimary
+                        )
+                    )
+                },
+                text = {
+                    Text(
+                        "You have a level in progress. Are you sure you want to exit to the Main Menu? Your progress for this level will not be saved.",
+                        style = MaterialTheme.typography.bodyMedium.copy(color = textSecondary)
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showExitConfirmDialog = false
+                            onBack()
+                        }
+                    ) {
+                        Text("Exit", style = MaterialTheme.typography.labelLarge.copy(color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showExitConfirmDialog = false }) {
+                        Text("Keep Playing", style = MaterialTheme.typography.labelLarge.copy(color = textSecondary))
+                    }
+                }
+            )
         }
     }
 }
