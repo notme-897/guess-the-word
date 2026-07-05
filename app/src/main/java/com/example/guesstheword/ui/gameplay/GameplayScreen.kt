@@ -81,8 +81,8 @@ fun GameplayScreen(
 ) {
     val context = LocalContext.current
     val prefs = remember { PreferencesManager(context) }
-    val level = remember { prefs.getCurrentLevel() }
-    val puzzle = remember { WordRepository.getPuzzleForLevel(context, level) }
+    val level = prefs.getCurrentLevel()
+    val puzzle = remember(level) { WordRepository.getPuzzleForLevel(context, level) }
     val scope = rememberCoroutineScope()
 
     // ── Savers for List types not natively supported by Bundle ─────────────
@@ -104,21 +104,22 @@ fun GameplayScreen(
     )
 
     // ── Mutable game state (rememberSaveable for configuration change safety) ─
-    var bankLetters  by rememberSaveable(stateSaver = bankLettersSaver)  { mutableStateOf(puzzle.letterBank) }
-    var bankUsed     by rememberSaveable(stateSaver = boolListSaver)     { mutableStateOf(List(puzzle.letterBank.size) { false }) }
-    var answerSlots  by rememberSaveable(stateSaver = charNullableSaver) { mutableStateOf(List<Char?>(puzzle.word.length) { null }) }
-    var answerSource by rememberSaveable(stateSaver = intListSaver)      { mutableStateOf(List(puzzle.word.length) { -1 }) }
+    var bankLetters  by rememberSaveable(level, stateSaver = bankLettersSaver)  { mutableStateOf(puzzle.letterBank) }
+    var bankUsed     by rememberSaveable(level, stateSaver = boolListSaver)     { mutableStateOf(List(puzzle.letterBank.size) { false }) }
+    var answerSlots  by rememberSaveable(level, stateSaver = charNullableSaver) { mutableStateOf(List<Char?>(puzzle.word.length) { null }) }
+    var answerSource by rememberSaveable(level, stateSaver = intListSaver)      { mutableStateOf(List(puzzle.word.length) { -1 }) }
 
-    var coins        by rememberSaveable { mutableIntStateOf(prefs.getCoins()) }
-    var earnedCoins  by rememberSaveable { mutableIntStateOf(0) }
-    var isCorrect    by rememberSaveable { mutableStateOf(false) }
-    var isWrong      by rememberSaveable { mutableStateOf(false) }
-    var showGetReady by rememberSaveable { mutableStateOf(true) }
+    var coins        by rememberSaveable(level)        { mutableIntStateOf(prefs.getCoins()) }
+    var earnedCoins  by rememberSaveable(level)        { mutableIntStateOf(0) }
+    var isCorrect    by rememberSaveable(level)        { mutableStateOf(false) }
+    var isWrong      by rememberSaveable(level)        { mutableStateOf(false) }
+    var showGetReady by rememberSaveable(level)        { mutableStateOf(true) }
 
     // Shake animation
     val shakeAnim = remember { Animatable(0f) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(level) {
+        showGetReady = true
         kotlinx.coroutines.delay(1200)
         showGetReady = false
     }
