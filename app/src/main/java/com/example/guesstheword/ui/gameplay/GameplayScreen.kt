@@ -130,8 +130,9 @@ fun GameplayScreen(
 
     LaunchedEffect(isCorrect) {
         if (isCorrect) {
+            android.util.Log.d("GuessWordNav", "GameplayScreen: isCorrect is true. Delaying 900ms before calling onLevelComplete...")
             kotlinx.coroutines.delay(900)
-            // earnedCoins was computed and saved to prefs in checkAnswer()
+            android.util.Log.d("GuessWordNav", "GameplayScreen: Delay finished. Invoking onLevelComplete(word=${puzzle.word}, coins=$earnedCoins)")
             onLevelComplete(puzzle.word, earnedCoins)
         }
     }
@@ -159,6 +160,7 @@ fun GameplayScreen(
     fun checkAnswer() {
         if (isCorrect) return  // guard against double invocation (e.g. rapid tap)
         val attempt = answerSlots.joinToString("") { it?.uppercase() ?: "" }
+        android.util.Log.d("GuessWordNav", "checkAnswer: attempt=$attempt, puzzle.word=${puzzle.word}")
         if (attempt == puzzle.word.uppercase()) {
             val baseReward = puzzle.reward
             var bonus = 0
@@ -174,8 +176,10 @@ fun GameplayScreen(
             if (newStreak > prefs.getBestStreak()) {
                 prefs.setBestStreak(newStreak)
             }
+            android.util.Log.d("GuessWordNav", "checkAnswer: Answer is CORRECT! Setting isCorrect=true, earnedCoins=$earnedCoins")
             isCorrect = true  // set last so LaunchedEffect sees final earnedCoins
         } else {
+            android.util.Log.d("GuessWordNav", "checkAnswer: Answer is WRONG. Resetting streak.")
             isWrong = true
             prefs.setStreak(0)
             doShake()

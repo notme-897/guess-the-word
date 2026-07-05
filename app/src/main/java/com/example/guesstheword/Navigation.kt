@@ -78,6 +78,7 @@ fun MainNavigation() {
             entry<Gameplay> {
                 GameplayScreen(
                     onLevelComplete = { word, coinsEarned ->
+                        android.util.Log.d("GuessWordNav", "GameplayScreen: onLevelComplete word=$word, coins=$coinsEarned")
                         backStack.add(LevelComplete(word, coinsEarned))
                     },
                     onBack = { backStack.removeLastOrNull() },
@@ -86,6 +87,7 @@ fun MainNavigation() {
             }
 
             entry<LevelComplete> {
+                android.util.Log.d("GuessWordNav", "Composing LevelComplete entry: word=${it.word}, coins=${it.coinsEarned}")
                 LevelCompleteScreen(
                     word = it.word,
                     coinsEarned = it.coinsEarned,
